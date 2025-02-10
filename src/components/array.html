@@ -1,0 +1,215 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Array Visualization</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            background-color: #f4f4f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .logo-container img {
+            width: 80px; /* Adjust size as needed */
+            height: auto;
+        }
+
+        .info-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #array-container { 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            margin-top: 20px; 
+        }
+
+        .array-box { 
+            width: 50px; height: 50px; border: 2px solid black; display: flex; 
+            align-items: center; justify-content: center; margin: 5px; font-size: 20px; 
+            background-color: lightblue; border-radius: 10px; cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            opacity: 0; transform: scale(0.5); transition: opacity 0.5s, transform 0.5s;
+        }
+        
+        .array-box.show { opacity: 1; transform: scale(1); }
+
+        .address { font-size: 12px; margin-top: 3px; color: gray; }
+
+        .container { margin-top: 50px; }
+
+        button { 
+            padding: 10px 20px; font-size: 16px; 
+            background-color: #28a745; color: white; border: none; 
+            border-radius: 5px; cursor: pointer; 
+        }
+
+        button:hover { background-color: #218838; }
+
+        input { padding: 5px; font-size: 16px; width: 50px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <!-- Header with Logo and Info Button -->
+    <div class="header">
+        <div class="logo-container">
+            <img src="./components/logo.png" alt="Logo">
+ <!-- Change the path to your logo -->
+        </div>
+        <button class="info-button" onclick="showInfo()">i</button>
+    </div>
+
+    <div class="container">
+        <h2>Array Visualization</h2>
+        <label for="dimension">Choose Array Dimension:</label>
+        <select id="dimension" onchange="handleDimensionChange()">
+            <option value="1D">1D Array</option>
+            <option value="2D">2D Array</option>
+        </select>
+        <div id="matrix-options" style="display:none;">
+            <label>Rows:</label> <input type="number" id="rows" min="1">
+            <label>Columns:</label> <input type="number" id="columns" min="1">
+            <label>Order:</label>
+            <select id="order">
+                <option value="row">Row-wise</option>
+                <option value="column">Column-wise</option>
+            </select>
+        </div>
+        <button onclick="generateInputs()">Generate Input Fields</button>
+        <div id="input-container"></div>
+        <button onclick="visualizeArray()">Visualize</button>
+        <div id="array-container"></div>
+    </div>
+    
+    <script>
+        function handleDimensionChange() {
+            document.getElementById("matrix-options").style.display = document.getElementById("dimension").value === "2D" ? "block" : "none";
+        }
+
+        function generateInputs() {
+            let dimension = document.getElementById("dimension").value;
+            let container = document.getElementById("input-container");
+            container.innerHTML = "";
+
+            if (dimension === "1D") {
+                let input = document.createElement("input");
+                input.type = "text";
+                input.id = "array-input";
+                input.placeholder = "Enter values, comma-separated";
+                container.appendChild(input);
+            } else {
+                let rows = parseInt(document.getElementById("rows").value);
+                let columns = parseInt(document.getElementById("columns").value);
+                for (let i = 0; i < rows; i++) {
+                    let rowDiv = document.createElement("div");
+                    for (let j = 0; j < columns; j++) {
+                        let input = document.createElement("input");
+                        input.id = `a${i}${j}`;
+                        input.type = "text";
+                        rowDiv.appendChild(input);
+                    }
+                    container.appendChild(rowDiv);
+                }
+            }
+        }
+
+        function visualizeArray() {
+            let dimension = document.getElementById("dimension").value;
+            let container = document.getElementById("array-container");
+            container.innerHTML = "";
+
+            let elements = [];
+
+            if (dimension === "1D") {
+                let values = document.getElementById("array-input").value.split(",").map(v => v.trim());
+                values.forEach((val, index) => {
+                    elements.push({ address: `a${index}`, value: val });
+                });
+            } else {
+                let rows = parseInt(document.getElementById("rows").value);
+                let columns = parseInt(document.getElementById("columns").value);
+                let order = document.getElementById("order").value;
+                let matrix = [];
+                
+                for (let i = 0; i < rows; i++) {
+                    matrix[i] = [];
+                    for (let j = 0; j < columns; j++) {
+                        matrix[i][j] = document.getElementById(`a${i}${j}`).value;
+                    }
+                }
+
+                if (order === "row") {
+                    for (let i = 0; i < rows; i++) {
+                        for (let j = 0; j < columns; j++) {
+                            elements.push({ address: `a${i}${j}`, value: matrix[i][j] });
+                        }
+                    }
+                } else {
+                    for (let j = 0; j < columns; j++) {
+                        for (let i = 0; i < rows; i++) {
+                            elements.push({ address: `a${i}${j}`, value: matrix[i][j] });
+                        }
+                    }
+                }
+            }
+
+            elements.forEach((item, index) => {
+                setTimeout(() => {
+                    let div = document.createElement("div");
+                    div.classList.add("array-box");
+                    div.textContent = item.value;
+                    div.dataset.index = item.address;
+                    div.onclick = function() { alert(`Address: ${item.address}\nValue: ${item.value}`); };
+
+                    let wrapper = document.createElement("div");
+                    wrapper.style.textAlign = "center";
+
+                    let addressDiv = document.createElement("div");
+                    addressDiv.classList.add("address");
+                    addressDiv.textContent = item.address;
+
+                    wrapper.appendChild(div);
+                    wrapper.appendChild(addressDiv);
+                    container.appendChild(wrapper);
+
+                    setTimeout(() => div.classList.add("show"), 100);
+                }, index * 500); // Delay for smooth visualization
+            });
+        }
+
+        function showInfo() {
+            alert("An array is a collection of elements stored at contiguous memory locations.\n\n1D Array: A linear collection of elements indexed from 0.\n\n2D Array: A matrix-like structure with rows and columns.");
+        }
+    </script>
+</body>
+</html>

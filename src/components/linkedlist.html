@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linked List Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        
+        .container {
+            margin-top: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f4f4f4;
+            color: white;
+        }
+
+        .header img {
+            width: 150px;
+            height: 150px;
+        }
+        .node-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .node {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            width: 150px;
+            height: 50px;
+            border: 2px solid black;
+            background-color: lightblue;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            position: relative;
+            margin: 5px;
+            text-align: center;
+        }
+
+        .node .data {
+            flex: 1;
+            text-align: center;
+            border-right: 2px solid black;
+            padding: 5px;
+        }
+
+        .node .next {
+            flex: 1;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .arrow {
+            display: inline-block;
+            font-size: 24px;
+            margin: 0 10px;
+            color: black;
+        }
+
+        .details {
+            margin-top: 20px;
+            padding: 10px;
+            border: 2px solid black;
+            background-color: white;
+            display: none;
+            width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .start {
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: red;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        input {
+            padding: 5px;
+            font-size: 16px;
+            margin: 5px;
+            width: 150px;
+            text-align: center;
+        }
+
+        .info-icon {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .info-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .info-content {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 5px;
+            width: 60%;
+            text-align: left;
+            max-width: 600px;
+        }
+
+        .close-popup {
+            color: white;
+            font-size: 24px;
+            background-color: #dc3545;
+            border: none;
+            border-radius: 50%;
+            padding: 5px 10px;
+            cursor: pointer;
+            float: right;
+        }
+
+        .close-popup:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="logo.png" alt="Logo" class="logo"> <!-- Replace 'logo.png' with your logo -->
+        <span class="info-icon" onclick="showInfoPopup()">ℹ️</span>
+    </div>
+
+    <div class="container">
+        <h2>Linked List Visualization</h2>
+        
+        <label>Enter Start Address:</label>
+        <input type="number" id="startAddress" placeholder="Default 1000">
+        <br>
+
+        <label>Enter Data (comma-separated):</label>
+        <input type="text" id="data-input" placeholder="e.g., 10, 20, 30">
+        <br>
+
+        <label>Enter Addresses (optional, comma-separated):</label>
+        <input type="text" id="address-input" placeholder="e.g., 2000, 3000, 4000">
+        <br>
+
+        <button onclick="visualizeLinkedList()">Visualize Linked List</button>
+        
+        <div id="start-address" class="start-address" style="margin-top: 20px;"></div>
+        
+        <div id="linked-list-container" class="node-container"></div>
+        
+        <div id="node-details" class="details"></div>
+    </div>
+
+    <div id="info-popup" class="info-popup">
+        <div class="info-content">
+            <button class="close-popup" onclick="closeInfoPopup()">X</button>
+            <h3>Linked List Information</h3>
+            <P>1  Linked List can be defined as collection of objects called nodes that are randomly stored in the memory.</p>
+            <p>2  A node contains two fields i.e. data stored at that particular address and the pointer which contains the address of the next node in the memory.</p>
+            <p>3  The last node of the list contains pointer to the null.</p>
+            <p>4  Linked lists are a way to store data in a flexible and dynamic manner</p>
+            <p>5  Nodes are connected by references/pointers, not stored together in memory</p>
+            <p>6  This allows the list to grow or shrink easily as needed</p>
+            <p>7  No need to pre-allocate a fixed amount of memory like arrays</p>
+            <p>8  Inserting and removing data is efficient like just updating pointers</p>
+            <p>9  Linked lists offer versatility through different variations</P>
+        
+        </div>
+    </div>
+
+    <script>
+        let dataValues = [];
+        let addresses = [];
+        let startAddress;
+        let selectedNodeIndex = -1;
+
+        function visualizeLinkedList() {
+            startAddress = document.getElementById("startAddress").value.trim();
+            dataValues = document.getElementById("data-input").value.split(",").map(v => v.trim());
+            let addressValues = document.getElementById("address-input").value.split(",").map(v => v.trim());
+
+            let container = document.getElementById("linked-list-container");
+            let detailsBox = document.getElementById("node-details");
+            let startAddressBox = document.getElementById("start-address");
+
+            container.innerHTML = "";
+            detailsBox.style.display = "none";
+            startAddressBox.innerHTML = "";
+
+            if (startAddress === "") startAddress = 1000;
+            startAddress = parseInt(startAddress);
+
+            addresses = [];
+            if (addressValues[0] !== "") {
+                addresses = addressValues.map(v => parseInt(v));
+            } else {
+                for (let i = 0; i < dataValues.length; i++) {
+                    addresses.push(startAddress + i * 10);
+                }
+            }
+
+            // Display Start Address
+            startAddressBox.innerHTML = `Start Address: ${startAddress}`;
+
+            // Add "Start" label before the first node
+            let startLabel = document.createElement("div");
+            startLabel.classList.add("start");
+            startLabel.innerText = "Start →";
+            container.appendChild(startLabel);
+
+            for (let i = 0; i < dataValues.length; i++) {
+                let nodeDiv = document.createElement("div");
+                nodeDiv.classList.add("node");
+                nodeDiv.innerHTML = ` 
+                    <div class="data">${dataValues[i]}</div>
+                    <div class="next">(${addresses[i]}) → ${i === dataValues.length - 1 ? "NULL" : addresses[i + 1]}</div>
+                `;
+
+                nodeDiv.onclick = function() {
+                    selectNode(i);
+                };
+
+                container.appendChild(nodeDiv);
+
+                if (i !== dataValues.length - 1) {
+                    let arrowDiv = document.createElement("div");
+                    arrowDiv.classList.add("arrow");
+                    arrowDiv.innerHTML = "→";
+                    container.appendChild(arrowDiv);
+                }
+            }
+        }
+
+        function selectNode(index) {
+            selectedNodeIndex = index;
+            document.getElementById("node-details").style.display = "block";
+            document.getElementById("node-details").innerHTML = `
+                <h3>Node Details</h3>
+                <p><strong>Data:</strong> ${dataValues[index]}</p>
+                <p><strong>Address:</strong> ${addresses[index]}</p>
+                <p><strong>Next Address:</strong> ${index === dataValues.length - 1 ? "NULL" : addresses[index + 1]}</p>
+            `;
+        }
+
+        function showInfoPopup() {
+            document.getElementById("info-popup").style.display = "flex";
+        }
+
+        function closeInfoPopup() {
+            document.getElementById("info-popup").style.display = "none";
+        }
+    </script>
+
+</body>
+</html>

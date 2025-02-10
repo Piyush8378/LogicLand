@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stack Visualization with Operations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+
+        .logo {
+            width: 150px;
+            height: 150px;
+            cursor: pointer;
+        }
+
+        .info-icon {
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .container {
+            margin-top: 30px;
+        }
+
+        .stack-container {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            margin-top: 20px;
+            height: 300px;
+            justify-content: flex-end;
+        }
+
+        .stack-element {
+            padding: 10px;
+            width: 80px;
+            height: 50px;
+            border: 2px solid black;
+            background-color: lightblue;
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        .operation-log {
+            margin-top: 20px;
+            padding: 10px;
+            border: 2px solid black;
+            background-color: white;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+            height: 150px;
+            overflow-y: auto;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        input {
+            padding: 5px;
+            font-size: 16px;
+            margin: 5px;
+            width: 150px;
+            text-align: center;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+        }
+
+        .close-popup {
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="logo.png" alt="Logo" class="logo"> <!-- Add your logo file here -->
+        <span class="info-icon" onclick="showPopup()">ℹ️</span>
+    </div>
+
+    <div class="container">
+        <h2>Stack Visualization</h2>
+
+        <label>Enter Values (comma-separated):</label>
+        <input type="text" id="values-input" placeholder="e.g., A, B, C">
+        <br>
+
+        <button onclick="insertToStack()">Insert</button>
+        <button onclick="deleteFromStack()">Delete</button>
+        <br>
+        <label>Enter Expression:</label>
+        <input type="text" id="expression-input" placeholder="e.g., A+B*(C-D)">
+        <br>
+
+        <button onclick="convertInfixToPostfix()">Infix to Postfix</button>
+        <button onclick="convertInfixToPrefix()">Infix to Prefix</button>
+
+        <div class="stack-container" id="stack-container"></div>
+
+        <div id="operation-log" class="operation-log"></div>
+    </div>
+
+    <!-- Popup for Stack Information -->
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <h3>Stack Information</h3>
+            <p>The stack allows you to add (push) or remove (pop) elements. The stack follows the Last-In-First-Out (LIFO) principle.</p>
+            <p><strong>Operations:</strong></p>
+            <ul>
+                <li><strong>Insert:</strong> Push elements onto the stack.</li>
+                <li><strong>Delete:</strong> Pop the top element off the stack.</li>
+                <li><strong>Infix to Postfix:</strong> Convert an infix expression to postfix notation.</li>
+                <li><strong>Infix to Prefix:</strong> Convert an infix expression to prefix notation.</li>
+            </ul>
+            <button class="close-popup" onclick="closePopup()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let stack = [];
+
+        function updateStackVisualization() {
+            let container = document.getElementById("stack-container");
+            container.innerHTML = ""; // Clear the container before updating
+            for (let i = 0; i < stack.length; i++) {
+                let stackElement = document.createElement("div");
+                stackElement.classList.add("stack-element");
+                stackElement.innerText = stack[i];
+                container.appendChild(stackElement);
+            }
+        }
+
+        function logOperation(operation) {
+            let log = document.getElementById("operation-log");
+            log.innerHTML += `<p>${operation}</p>`;
+            log.scrollTop = log.scrollHeight; // Scroll to the bottom
+        }
+
+        function insertToStack() {
+            let input = document.getElementById("values-input").value.trim();
+            let values = input.split(",").map(v => v.trim());
+            if (values.length > 0) {
+                values.forEach(value => {
+                    stack.push(value);
+                    logOperation(`Inserted: ${value}`);
+                });
+                updateStackVisualization(); // Update stack visualization after insertions
+            }
+        }
+
+        function deleteFromStack() {
+            if (stack.length > 0) {
+                let deletedValue = stack.pop();
+                logOperation(`Deleted: ${deletedValue}`);
+                updateStackVisualization(); // Update stack visualization after deletion
+            } else {
+                logOperation("Stack is empty, cannot delete.");
+            }
+        }
+
+        function infixToPostfix(infix) {
+            let precedence = { "+": 1, "-": 1, "*": 2, "/": 2, "^": 3 };
+            let stack = [];
+            let result = [];
+            for (let i = 0; i < infix.length; i++) {
+                let char = infix[i];
+
+                if (/[A-Za-z0-9]/.test(char)) {
+                    result.push(char);
+                } else if (char === "(") {
+                    stack.push(char);
+                } else if (char === ")") {
+                    while (stack.length && stack[stack.length - 1] !== "(") {
+                        result.push(stack.pop());
+                    }
+                    stack.pop();
+                } else if (precedence[char]) {
+                    while (stack.length && precedence[stack[stack.length - 1]] >= precedence[char]) {
+                        result.push(stack.pop());
+                    }
+                    stack.push(char);
+                }
+            }
+            while (stack.length) {
+                result.push(stack.pop());
+            }
+            return result.join("");
+        }
+
+        function infixToPrefix(infix) {
+            let reversed = infix.split("").reverse().join("");
+            let postfix = infixToPostfix(reversed);
+            return postfix.split("").reverse().join("");
+        }
+
+        function convertInfixToPostfix() {
+            let expression = document.getElementById("expression-input").value.trim();
+            let result = infixToPostfix(expression);
+            logOperation(`Infix to Postfix: ${expression} → ${result}`);
+        }
+
+        function convertInfixToPrefix() {
+            let expression = document.getElementById("expression-input").value.trim();
+            let result = infixToPrefix(expression);
+            logOperation(`Infix to Prefix: ${expression} → ${result}`);
+        }
+
+        // Show the popup
+        function showPopup() {
+            document.getElementById("popup").style.display = "flex";
+        }
+
+        // Close the popup
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+        }
+    </script>
+
+</body>
+</html>
